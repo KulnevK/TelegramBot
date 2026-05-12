@@ -1,9 +1,10 @@
 from yookassa import Configuration, Payment
 import uuid
+import os
 
-# Настройки ЮKassa (заполните после регистрации)
-SHOP_ID = "YOUR_SHOP_ID"  # ID магазина из личного кабинета ЮKassa
-SECRET_KEY = "YOUR_SECRET_KEY"  # Секретный ключ из личного кабинета
+# Настройки ЮKassa (из переменных окружения)
+SHOP_ID = os.getenv("YOOKASSA_SHOP_ID", "")
+SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY", "")
 
 # Цены
 PREMIUM_MONTH_PRICE = 100  # 100 рублей за месяц

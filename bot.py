@@ -14,8 +14,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Токен бота
-BOT_TOKEN = "8675205493:AAE9MTp6uUVEH3VaoJveXFFydKoS75XYIFk"
+# Токен бота (из переменной окружения)
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8675205493:AAE9MTp6uUVEH3VaoJveXFFydKoS75XYIFk")
 
 # Папка для временных файлов
 DOWNLOAD_FOLDER = "downloads"
@@ -24,8 +24,9 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 # База данных
 db = Database()
 
-# ID администраторов (замените на свой Telegram ID)
-ADMIN_IDS = [5204496353]  # Ваш ID администратора
+# ID администраторов (из переменной окружения или по умолчанию)
+ADMIN_IDS_STR = os.getenv("ADMIN_IDS", "5204496353")
+ADMIN_IDS = [int(id.strip()) for id in ADMIN_IDS_STR.split(",") if id.strip()]
 
 def is_valid_url(url):
     """Проверка, является ли текст ссылкой на видео"""
