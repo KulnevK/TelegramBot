@@ -295,20 +295,32 @@ def main():
 
     logger.info("Запуск VK бота...")
 
-    # Авторизация
-    vk_session = vk_api.VkApi(token=VK_TOKEN)
-    vk = vk_session.get_api()
-    longpoll = VkLongPoll(vk_session)
+    try:
+        # Авторизация
+        logger.info("Авторизация в VK API...")
+        vk_session = vk_api.VkApi(token=VK_TOKEN)
+        vk = vk_session.get_api()
 
-    logger.info("VK бот запущен и готов к работе!")
+        # Проверяем подключение
+        logger.info("Проверка подключения к VK API...")
+        vk.users.get()
+        logger.info("Подключение к VK API успешно!")
 
-    # Обработка событий
-    for event in longpoll.listen():
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            try:
-                asyncio.run(handle_message(vk_session, vk, event))
-            except Exception as e:
-                logger.error(f"Ошибка обработки сообщения: {e}")
+        longpoll = VkLongPoll(vk_session)
+        logger.info("VK бот запущен и готов к работе!")
+
+        # Обработка событий
+        for event in longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                try:
+                    asyncio.run(handle_message(vk_session, vk, event))
+                except Exception as e:
+                    logger.error(f"Ошибка обработки сообщения: {e}")
+
+    except vk_api.exceptions.ApiError as e:
+        logger.error(f"Ошибка VK API: {e}")
+    except Exception as e:
+        logger.error(f"Критическая ошибка VK бота: {e}", exc_info=True)
 
 
 if __name__ == '__main__':
