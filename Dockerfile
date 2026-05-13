@@ -14,5 +14,5 @@ COPY . .
 # Создаем необходимые папки
 RUN mkdir -p downloads
 
-# Запускаем универсальный запускатель (оба бота)
-CMD ["python", "run_bots.py"]
+# Запускаем бота
+CMD ["python", "bot.py"]
