@@ -2,4 +2,4 @@ python-telegram-bot==22.7
 requests==2.34.0
 yt-dlp==2026.3.17
 yookassa==3.10.1
-yandex-music==2.1.1
+yandex-music>=3.0.0
