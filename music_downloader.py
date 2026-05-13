@@ -136,6 +136,7 @@ class MusicDownloader:
         """Проверка, является ли URL ссылкой на музыку"""
         music_patterns = [
             r'music\.yandex',
+            r'music\.youtube',
             r'soundcloud\.com',
             r'bandcamp\.com',
         ]

@@ -36,6 +36,7 @@ def is_valid_url(url):
     """Проверка, является ли текст ссылкой на видео или музыку"""
     patterns = [
         r'(https?://)?(www\.)?(youtube\.com|youtu\.be)',
+        r'(https?://)?(www\.)?(music\.youtube\.com)',
         r'(https?://)?(www\.)?(tiktok\.com)',
         r'(https?://)?(www\.)?(instagram\.com)',
         r'(https?://)?(www\.)?(twitter\.com|x\.com)',
