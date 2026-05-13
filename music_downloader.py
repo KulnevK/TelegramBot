@@ -1,0 +1,129 @@
+import os
+import logging
+import yt_dlp
+from yandex_music import Client
+
+logger = logging.getLogger(__name__)
+
+DOWNLOAD_FOLDER = "downloads"
+
+class MusicDownloader:
+    def __init__(self):
+        self.yandex_client = None
+
+    def init_yandex_client(self, token=None):
+        """Инициализация клиента Яндекс.Музыки"""
+        try:
+            if token:
+                self.yandex_client = Client(token).init()
+            else:
+                self.yandex_client = Client().init()
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка инициализации Яндекс.Музыки: {e}")
+            return False
+
+    async def download_yandex_music(self, url):
+        """Скачивание с Яндекс.Музыки"""
+        try:
+            if not self.yandex_client:
+                self.init_yandex_client()
+
+            # Извлекаем ID трека из URL
+            track_id = self._extract_yandex_track_id(url)
+            if not track_id:
+                return None, None
+
+            # Получаем информацию о треке
+            track = self.yandex_client.tracks([track_id])[0]
+
+            # Формируем имя файла
+            artist = track.artists[0].name if track.artists else "Unknown"
+            title = track.title
+            filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}.mp3")
+
+            # Скачиваем трек
+            track.download(filename)
+
+            return filename, f"{artist} - {title}"
+
+        except Exception as e:
+            logger.error(f"Ошибка скачивания с Яндекс.Музыки: {e}")
+            return None, None
+
+    def _extract_yandex_track_id(self, url):
+        """Извлечь ID трека из URL Яндекс.Музыки"""
+        import re
+
+        # Паттерны для разных форматов URL
+        patterns = [
+            r'music\.yandex\.\w+/album/\d+/track/(\d+)',
+            r'music\.yandex\.\w+/track/(\d+)',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, url)
+            if match:
+                return match.group(1)
+
+        return None
+
+    async def download_music_generic(self, url):
+        """Скачивание музыки с других сервисов через yt-dlp"""
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(artist)s - %(title)s.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'quiet': True,
+            'no_warnings': True,
+        }
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+
+                # Формируем имя файла
+                artist = info.get('artist', info.get('uploader', 'Unknown'))
+                title = info.get('title', 'Unknown')
+
+                # yt-dlp может изменить расширение на .mp3 после конвертации
+                base_filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}")
+
+                # Ищем файл с любым расширением
+                for ext in ['.mp3', '.m4a', '.opus', '.webm']:
+                    filename = base_filename + ext
+                    if os.path.exists(filename):
+                        return filename, f"{artist} - {title}"
+
+                # Если не нашли, используем оригинальное имя
+                filename = ydl.prepare_filename(info)
+                if os.path.exists(filename):
+                    return filename, f"{artist} - {title}"
+
+                return None, None
+
+        except Exception as e:
+            logger.error(f"Ошибка скачивания музыки: {e}")
+            return None, None
+
+    def is_yandex_music_url(self, url):
+        """Проверка, является ли URL ссылкой на Яндекс.Музыку"""
+        return 'music.yandex' in url.lower()
+
+    def is_music_url(self, url):
+        """Проверка, является ли URL ссылкой на музыку"""
+        music_patterns = [
+            r'music\.yandex',
+            r'spotify\.com',
+            r'soundcloud\.com',
+            r'bandcamp\.com',
+            r'deezer\.com',
+            r'apple\.com/.*music',
+        ]
+
+        import re
+        return any(re.search(pattern, url.lower()) for pattern in music_patterns)
