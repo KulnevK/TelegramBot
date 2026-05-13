@@ -90,22 +90,24 @@ def send_document(vk_session, user_id, file_path, title):
 
         # Определяем тип файла по расширению
         if file_path.endswith('.mp3') or file_path.endswith('.m4a'):
-            # Загружаем как аудио
-            doc = upload.audio_message(file_path, peer_id=user_id)
+            # Загружаем как аудиосообщение
+            result = upload.audio_message(file_path, peer_id=user_id)
+            attachment = f"doc{result['audio_message']['owner_id']}_{result['audio_message']['id']}"
         else:
             # Загружаем как документ
-            doc = upload.document_message(file_path, title=title, peer_id=user_id)
+            result = upload.document_message(file_path, title=title, peer_id=user_id)
+            attachment = f"doc{result['doc']['owner_id']}_{result['doc']['id']}"
 
         # Отправляем документ
         vk = vk_session.get_api()
         vk.messages.send(
             user_id=user_id,
-            attachment=f"doc{doc['doc']['owner_id']}_{doc['doc']['id']}",
+            attachment=attachment,
             random_id=get_random_id()
         )
         return True
     except Exception as e:
-        logger.error(f"Ошибка отправки файла: {e}")
+        logger.error(f"Ошибка отправки файла: {e}", exc_info=True)
         return False
 
 
