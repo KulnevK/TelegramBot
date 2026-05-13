@@ -10,12 +10,15 @@ DOWNLOAD_FOLDER = "downloads"
 class MusicDownloader:
     def __init__(self):
         self.yandex_client = None
+        self.yandex_token = os.getenv("YANDEX_MUSIC_TOKEN")
 
     def init_yandex_client(self, token=None):
         """Инициализация клиента Яндекс.Музыки"""
         try:
-            if token:
-                self.yandex_client = Client(token).init()
+            # Используем токен из параметра, переменной окружения или без токена
+            token_to_use = token or self.yandex_token
+            if token_to_use:
+                self.yandex_client = Client(token_to_use).init()
             else:
                 self.yandex_client = Client().init()
             return True
