@@ -2,8 +2,7 @@ import os
 import logging
 import asyncio
 import threading
-from bot import main as telegram_main
-from vk_bot import main as vk_main
+import sys
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -12,18 +11,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def run_telegram_bot():
-    """Запуск Telegram бота"""
-    try:
-        logger.info("Запуск Telegram бота...")
-        telegram_main()
-    except Exception as e:
-        logger.error(f"Ошибка Telegram бота: {e}")
-
-
 def run_vk_bot():
     """Запуск VK бота"""
     try:
+        from vk_bot import main as vk_main
         logger.info("Запуск VK бота...")
         vk_main()
     except Exception as e:
@@ -42,32 +33,32 @@ def main():
         logger.error("Не установлены токены! Установите BOT_TOKEN и/или VK_TOKEN")
         return
 
-    threads = []
+    # Если есть только Telegram - запускаем его в главном потоке
+    if has_telegram and not has_vk:
+        from bot import main as telegram_main
+        logger.info("Запуск только Telegram бота...")
+        telegram_main()
+        return
 
-    # Запускаем Telegram бота в отдельном потоке
-    if has_telegram:
-        telegram_thread = threading.Thread(target=run_telegram_bot, daemon=True)
-        telegram_thread.start()
-        threads.append(telegram_thread)
-        logger.info("✅ Telegram бот запущен")
-    else:
-        logger.warning("⚠️ BOT_TOKEN не установлен, Telegram бот не запущен")
+    # Если есть только VK - запускаем его в главном потоке
+    if has_vk and not has_telegram:
+        logger.info("Запуск только VK бота...")
+        run_vk_bot()
+        return
 
-    # Запускаем VK бота в отдельном потоке
-    if has_vk:
+    # Если есть оба - запускаем VK в отдельном потоке, Telegram в главном
+    if has_telegram and has_vk:
+        logger.info("Запуск обоих ботов...")
+
+        # VK бот в отдельном потоке
         vk_thread = threading.Thread(target=run_vk_bot, daemon=True)
         vk_thread.start()
-        threads.append(vk_thread)
-        logger.info("✅ VK бот запущен")
-    else:
-        logger.warning("⚠️ VK_TOKEN не установлен, VK бот не запущен")
+        logger.info("✅ VK бот запущен в отдельном потоке")
 
-    # Ждём завершения всех потоков
-    try:
-        for thread in threads:
-            thread.join()
-    except KeyboardInterrupt:
-        logger.info("Остановка ботов...")
+        # Telegram бот в главном потоке
+        from bot import main as telegram_main
+        logger.info("Запуск Telegram бота в главном потоке...")
+        telegram_main()
 
 
 if __name__ == '__main__':

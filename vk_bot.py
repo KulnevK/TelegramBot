@@ -82,14 +82,22 @@ def send_message(vk, user_id, message):
     )
 
 
-def send_document(vk, user_id, file_path, title):
+def send_document(vk_session, user_id, file_path, title):
     """Отправка файла пользователю"""
     try:
         # Загружаем файл на сервер VK
-        upload = vk_api.VkUpload(vk)
-        doc = upload.document_message(file_path, title=title, peer_id=user_id)
+        upload = vk_api.VkUpload(vk_session)
+
+        # Определяем тип файла по расширению
+        if file_path.endswith('.mp3') or file_path.endswith('.m4a'):
+            # Загружаем как аудио
+            doc = upload.audio_message(file_path, peer_id=user_id)
+        else:
+            # Загружаем как документ
+            doc = upload.document_message(file_path, title=title, peer_id=user_id)
 
         # Отправляем документ
+        vk = vk_session.get_api()
         vk.messages.send(
             user_id=user_id,
             attachment=f"doc{doc['doc']['owner_id']}_{doc['doc']['id']}",
@@ -101,7 +109,7 @@ def send_document(vk, user_id, file_path, title):
         return False
 
 
-async def handle_message(vk, event):
+async def handle_message(vk_session, vk, event):
     """Обработчик сообщений"""
     user_id = event.user_id
     text = event.text.strip()
@@ -230,7 +238,7 @@ async def handle_message(vk, event):
 
                 send_message(vk, user_id, "📤 Отправляю музыку...")
 
-                if send_document(vk, user_id, filename, f"{title}.mp3"):
+                if send_document(vk_session, user_id, filename, f"{title}.mp3"):
                     db.increment_download(user_id)
                     os.remove(filename)
                 else:
@@ -298,7 +306,7 @@ def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             try:
-                asyncio.run(handle_message(vk, event))
+                asyncio.run(handle_message(vk_session, vk, event))
             except Exception as e:
                 logger.error(f"Ошибка обработки сообщения: {e}")
 
