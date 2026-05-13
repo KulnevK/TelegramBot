@@ -36,7 +36,6 @@ def is_valid_url(url):
     """Проверка, является ли текст ссылкой на видео или музыку"""
     patterns = [
         r'(https?://)?(www\.)?(youtube\.com|youtu\.be)',
-        r'(https?://)?(www\.)?(music\.youtube\.com)',
         r'(https?://)?(www\.)?(tiktok\.com)',
         r'(https?://)?(www\.)?(instagram\.com)',
         r'(https?://)?(www\.)?(twitter\.com|x\.com)',
@@ -73,8 +72,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎵 Музыка:\n"
         "✅ Яндекс.Музыка\n"
         "✅ SoundCloud\n"
-        "✅ Bandcamp\n"
-        "✅ YouTube Music\n\n"
+        "✅ Bandcamp\n\n"
         "Просто отправь мне ссылку!\n\n"
         f"{premium_status}\n\n"
         "Команды:\n"
@@ -101,8 +99,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎵 Музыка:\n"
         "• Яндекс.Музыка\n"
         "• SoundCloud\n"
-        "• Bandcamp\n"
-        "• YouTube Music\n\n"
+        "• Bandcamp\n\n"
         "🆓 Бесплатно: 3 скачивания в день\n"
         "💎 Премиум: безлимит за 100₽/месяц"
     )
@@ -233,7 +230,7 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Это не похоже на ссылку на видео или музыку 🤔\n\n"
             "Отправьте ссылку с поддерживаемых платформ:\n"
             "🎥 YouTube, TikTok, Instagram, Twitter, Facebook\n"
-            "🎵 Яндекс.Музыка, SoundCloud, Bandcamp, YouTube Music"
+            "🎵 Яндекс.Музыка, SoundCloud, Bandcamp"
         )
         return
 
