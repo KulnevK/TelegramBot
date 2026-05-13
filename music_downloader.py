@@ -25,6 +25,8 @@ class MusicDownloader:
 
     async def download_yandex_music(self, url):
         """Скачивание с Яндекс.Музыки"""
+        import asyncio
+
         try:
             if not self.yandex_client:
                 self.init_yandex_client()
@@ -34,18 +36,23 @@ class MusicDownloader:
             if not track_id:
                 return None, None
 
-            # Получаем информацию о треке
-            track = self.yandex_client.tracks([track_id])[0]
+            # Выполняем синхронные операции в отдельном потоке
+            def download():
+                # Получаем информацию о треке
+                track = self.yandex_client.tracks([track_id])[0]
 
-            # Формируем имя файла
-            artist = track.artists[0].name if track.artists else "Unknown"
-            title = track.title
-            filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}.mp3")
+                # Формируем имя файла
+                artist = track.artists[0].name if track.artists else "Unknown"
+                title = track.title
+                filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}.mp3")
 
-            # Скачиваем трек
-            track.download(filename)
+                # Скачиваем трек
+                track.download(filename)
 
-            return filename, f"{artist} - {title}"
+                return filename, f"{artist} - {title}"
+
+            result = await asyncio.to_thread(download)
+            return result
 
         except Exception as e:
             logger.error(f"Ошибка скачивания с Яндекс.Музыки: {e}")
@@ -70,6 +77,8 @@ class MusicDownloader:
 
     async def download_music_generic(self, url):
         """Скачивание музыки с других сервисов через yt-dlp"""
+        import asyncio
+
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(artist)s - %(title)s.%(ext)s'),
@@ -83,28 +92,34 @@ class MusicDownloader:
         }
 
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
+            # Запускаем синхронный код в отдельном потоке
+            def download():
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
 
-                # Формируем имя файла
-                artist = info.get('artist', info.get('uploader', 'Unknown'))
-                title = info.get('title', 'Unknown')
+                    # Формируем имя файла
+                    artist = info.get('artist', info.get('uploader', 'Unknown'))
+                    title = info.get('title', 'Unknown')
 
-                # yt-dlp может изменить расширение на .mp3 после конвертации
-                base_filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}")
+                    # yt-dlp может изменить расширение на .mp3 после конвертации
+                    base_filename = os.path.join(DOWNLOAD_FOLDER, f"{artist} - {title}")
 
-                # Ищем файл с любым расширением
-                for ext in ['.mp3', '.m4a', '.opus', '.webm']:
-                    filename = base_filename + ext
+                    # Ищем файл с любым расширением
+                    for ext in ['.mp3', '.m4a', '.opus', '.webm']:
+                        filename = base_filename + ext
+                        if os.path.exists(filename):
+                            return filename, f"{artist} - {title}"
+
+                    # Если не нашли, используем оригинальное имя
+                    filename = ydl.prepare_filename(info)
                     if os.path.exists(filename):
                         return filename, f"{artist} - {title}"
 
-                # Если не нашли, используем оригинальное имя
-                filename = ydl.prepare_filename(info)
-                if os.path.exists(filename):
-                    return filename, f"{artist} - {title}"
+                    return None, None
 
-                return None, None
+            # Выполняем в отдельном потоке, чтобы не блокировать event loop
+            result = await asyncio.to_thread(download)
+            return result
 
         except Exception as e:
             logger.error(f"Ошибка скачивания музыки: {e}")
