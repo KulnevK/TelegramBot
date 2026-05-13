@@ -65,6 +65,9 @@ class MusicDownloader:
         """Извлечь ID трека из URL Яндекс.Музыки"""
         import re
 
+        # Убираем параметры запроса (всё после ?)
+        url = url.split('?')[0]
+
         # Паттерны для разных форматов URL
         patterns = [
             r'music\.yandex\.\w+/album/\d+/track/(\d+)',
