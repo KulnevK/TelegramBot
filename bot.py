@@ -41,10 +41,8 @@ def is_valid_url(url):
         r'(https?://)?(www\.)?(twitter\.com|x\.com)',
         r'(https?://)?(www\.)?(facebook\.com)',
         r'(https?://)?(www\.)?music\.yandex',
-        r'(https?://)?(www\.)?(spotify\.com)',
         r'(https?://)?(www\.)?(soundcloud\.com)',
         r'(https?://)?(www\.)?(bandcamp\.com)',
-        r'(https?://)?(www\.)?(deezer\.com)',
     ]
     return any(re.search(pattern, url) for pattern in patterns)
 
@@ -73,10 +71,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "✅ Facebook\n\n"
         "🎵 Музыка:\n"
         "✅ Яндекс.Музыка\n"
-        "✅ Spotify\n"
         "✅ SoundCloud\n"
         "✅ Bandcamp\n"
-        "✅ Deezer\n\n"
+        "✅ YouTube Music\n\n"
         "Просто отправь мне ссылку!\n\n"
         f"{premium_status}\n\n"
         "Команды:\n"
@@ -102,10 +99,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Facebook\n\n"
         "🎵 Музыка:\n"
         "• Яндекс.Музыка\n"
-        "• Spotify\n"
         "• SoundCloud\n"
         "• Bandcamp\n"
-        "• Deezer\n\n"
+        "• YouTube Music\n\n"
         "🆓 Бесплатно: 3 скачивания в день\n"
         "💎 Премиум: безлимит за 100₽/месяц"
     )
@@ -236,7 +232,7 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Это не похоже на ссылку на видео или музыку 🤔\n\n"
             "Отправьте ссылку с поддерживаемых платформ:\n"
             "🎥 YouTube, TikTok, Instagram, Twitter, Facebook\n"
-            "🎵 Яндекс.Музыка, Spotify, SoundCloud, Bandcamp, Deezer"
+            "🎵 Яндекс.Музыка, SoundCloud, Bandcamp, YouTube Music"
         )
         return
 

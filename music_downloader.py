@@ -136,11 +136,8 @@ class MusicDownloader:
         """Проверка, является ли URL ссылкой на музыку"""
         music_patterns = [
             r'music\.yandex',
-            r'spotify\.com',
             r'soundcloud\.com',
             r'bandcamp\.com',
-            r'deezer\.com',
-            r'apple\.com/.*music',
         ]
 
         import re
